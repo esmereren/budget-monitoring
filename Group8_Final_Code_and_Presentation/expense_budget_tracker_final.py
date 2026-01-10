@@ -618,7 +618,18 @@ Budgets (Menu)
 
 
 def show_categories_menu():
-    print("""
+    print(
+        "\n"
+        "=================\n"
+        "Categories (Menu)\n"
+        "=================\n"
+        "1  - List categories\n"
+        "2  - Add category\n"
+        "3  - Delete category\n"
+        "0  - Back\n"
+    )
+
+
 def handle_expenses_menu():
     while True:
         show_expenses_menu()
