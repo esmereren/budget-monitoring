@@ -192,6 +192,109 @@ def save_budgets_csv(filename: str):
         print(f"Error while saving budgets: {e}")
 
 
+def list_budgets_for_month(month_input: str):
+    items = get_budget_items_for_month(month_input)
+    if not items:
+        print(f"No budgets found for month '{month_input}'.")
+        return
+    print("-" * 50)
+    print(f"Budgets for {month_input}")
+    print("-" * 50)
+    print(f"{'Category':20s} {'Budget':>10s}")
+    print("-" * 50)
+    for cat, value in items:
+        print(f"{cat:20s} {value:10.2f}")
+    print("-" * 50)
+
+
+def get_budget_items_for_month(month_input: str):
+    month_budgets = budgets_by_month.get(month_input, {})
+    return sorted(month_budgets.items(), key=lambda item: item[0].lower())
+
+
+def list_budgets_for_month_with_numbers(month_input: str):
+    items = get_budget_items_for_month(month_input)
+    if not items:
+        print(f"No budgets found for month '{month_input}'.")
+        return []
+    print("-" * 60)
+    print(f"Budgets for {month_input}")
+    print("-" * 60)
+    print(f"{'No.':>3s}  {'Category':20s} {'Budget':>10s}")
+    print("-" * 60)
+    for i, (cat, value) in enumerate(items, start=1):
+        print(f"{i:3d}  {cat:20s} {value:10.2f}")
+    print("-" * 60)
+    return items
+
+
+def list_all_budgets():
+    if not budgets_by_month:
+        print("No budgets to display.")
+        return
+    for month in sorted(budgets_by_month.keys()):
+        list_budgets_for_month(month)
+
+
+def add_budget_interactive():
+    month_input = input("Month (YYYY-MM): ").strip()
+    if extract_month(month_input) is None:
+        print("Invalid month format.")
+        return
+    cat = input("Category: ").strip()
+    if not cat:
+        print("Invalid category.")
+        return
+    amount_txt = input("Budget amount: ").strip()
+    amount_val = safe_float(amount_txt)
+    if amount_val is None:
+        print("Invalid amount.")
+        return
+    if month_input not in budgets_by_month:
+        budgets_by_month[month_input] = {}
+    budgets_by_month[month_input][cat] = round(amount_val, 2)
+    print(f"Budget saved for {month_input} / {cat}.")
+
+
+def edit_budget_interactive():
+    month_input = input("Enter month (YYYY-MM): ").strip()
+    if extract_month(month_input) is None:
+        print("Invalid month format.")
+        return
+    items = list_budgets_for_month_with_numbers(month_input)
+    if not items:
+        return
+    choice = input("Select budget number to edit: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(items):
+        print("Selection out of range.")
+        return
+
+    old_cat, old_value = items[idx]
+
+    new_cat = input(f"New category (enter to keep '{old_cat}'): ").strip()
+    if not new_cat:
+        new_cat = old_cat
+
+    new_amount = input(f"New budget amount (enter to keep '{old_value:.2f}'): ").strip()
+    if new_amount:
+        amount_val = safe_float(new_amount)
+        if amount_val is None:
+            print("Invalid amount. Edit cancelled.")
+            return
+        new_value = round(amount_val, 2)
+    else:
+        new_value = old_value
+
+    if new_cat != old_cat:
+        del budgets_by_month[month_input][old_cat]
+    budgets_by_month[month_input][new_cat] = new_value
+    print("Budget updated.")
+
+
 def delete_all_budgets():
     if not budgets_by_month:
         print("No budgets to delete.")
@@ -448,6 +551,10 @@ Budgets (Menu)
 1  - Load budgets from CSV
 2  - Save budgets to CSV
 3  - Delete all budgets
+4  - List budgets (selected month)
+5  - List budgets (all)
+6  - Add budget (manual)
+7  - Edit budget (selected month)
 0  - Back
 """)
 
@@ -499,6 +606,18 @@ def handle_budgets_menu():
             save_budgets_csv(fn)
         elif choice == "3":
             delete_all_budgets()
+        elif choice == "4":
+            month_input = input("Enter month (YYYY-MM): ").strip()
+            if extract_month(month_input) is None:
+                print("Invalid month format.")
+            else:
+                list_budgets_for_month(month_input)
+        elif choice == "5":
+            list_all_budgets()
+        elif choice == "6":
+            add_budget_interactive()
+        elif choice == "7":
+            edit_budget_interactive()
         elif choice == "0":
             break
         else:
