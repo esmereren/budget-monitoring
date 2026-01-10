@@ -290,10 +290,14 @@ def list_all_budgets():
 
 
 def add_budget_interactive():
-    month_input = input("Month (YYYY-MM): ").strip()
-    if extract_month(month_input) is None:
-        print("Invalid month format.")
-        return
+    while True:
+        month_input = input("Month (YYYY-MM) (enter to stop): ").strip()
+        if not month_input:
+            return
+        if extract_month(month_input) is None:
+            print("Invalid month format.")
+            continue
+        break
     while True:
         cat = input("Category (enter to stop): ").strip()
         if not cat:
