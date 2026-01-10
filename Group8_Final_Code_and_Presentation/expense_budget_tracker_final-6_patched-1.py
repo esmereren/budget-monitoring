@@ -1,5 +1,3 @@
-import os
-
 try:
     import matplotlib.pyplot as plt
     HAS_MPL = True
