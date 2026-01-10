@@ -109,6 +109,62 @@ def delete_category_interactive():
     print(f"Category '{category}' deleted.")
 
 
+def edit_category_interactive():
+    if not CATEGORY_RULES:
+        print("No categories to edit.")
+        return
+    list_categories()
+    choice = input("Select category number to edit: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(CATEGORY_RULES):
+        print("Selection out of range.")
+        return
+
+    old_category, old_keywords = CATEGORY_RULES[idx]
+
+    new_category = input(f"New category name (enter to keep '{old_category}'): ").strip()
+    if not new_category:
+        new_category = old_category
+    else:
+        for existing, _ in CATEGORY_RULES:
+            if existing.lower() == new_category.lower() and existing.lower() != old_category.lower():
+                print("Category already exists. Edit cancelled.")
+                return
+
+    keywords_input = input(
+        f"New keywords (comma separated, enter to keep '{', '.join(old_keywords)}'): "
+    ).strip()
+    if keywords_input:
+        new_keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
+        if not new_keywords:
+            print("At least one keyword is required. Edit cancelled.")
+            return
+    else:
+        new_keywords = old_keywords
+
+    CATEGORY_RULES[idx] = (new_category, new_keywords)
+
+    if new_category != old_category:
+        for rec in expenses:
+            if rec[IDX_CATEGORY] == old_category:
+                rec[IDX_CATEGORY] = new_category
+        for month, budgets in budgets_by_month.items():
+            if old_category in budgets:
+                old_value = budgets.pop(old_category)
+                if new_category in budgets:
+                    print(
+                        f"Warning: budget already exists for '{new_category}' in {month}. "
+                        "Keeping existing value."
+                    )
+                else:
+                    budgets[new_category] = old_value
+
+    print("Category updated.")
+
+
 def load_expenses_csv(filename: str):
     loaded = 0
     skipped = 0
@@ -628,7 +684,8 @@ def show_categories_menu():
         "=================\n"
         "1  - List categories\n"
         "2  - Add category\n"
-        "3  - Delete category\n"
+        "3  - Edit category\n"
+        "4  - Delete category\n"
         "0  - Back\n"
     )
 
@@ -677,6 +734,8 @@ def handle_categories_menu():
         elif choice == "2":
             add_category_interactive()
         elif choice == "3":
+            edit_category_interactive()
+        elif choice == "4":
             delete_category_interactive()
         elif choice == "0":
             break
@@ -746,4 +805,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nGood bye")
