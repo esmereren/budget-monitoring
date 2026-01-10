@@ -45,7 +45,6 @@ We use a `main()` function with a `while True` loop. In each loop iteration we:
 
 This structure is simple, testable, and aligns with the course approach for modular programs.
 
-### How we addressed the lecturer’s comments
 We explicitly incorporated the feedback in our final design:
 - **Monthly budgets:** we analyze budgets **per month and category**.
 - **Add/Edit consumption data:** we added menu functions to **add** a new expense and **edit** an existing one.
