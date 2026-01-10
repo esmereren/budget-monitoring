@@ -192,22 +192,6 @@ def save_budgets_csv(filename: str):
         print(f"Error while saving budgets: {e}")
 
 
-def list_budgets_for_month(month_input: str):
-    month_budgets = budgets_by_month.get(month_input, {})
-    if not month_budgets:
-        print(f"No budgets found for month '{month_input}'.")
-        return
-    print("-" * 50)
-    print(f"Budgets for {month_input}")
-    print("-" * 50)
-    print(f"{'Category':20s} {'Budget':>10s}")
-    print("-" * 50)
-    for cat in sorted(month_budgets.keys(), key=str.lower):
-        value = month_budgets[cat]
-        print(f"{cat:20s} {value:10.2f}")
-    print("-" * 50)
-
-
 def delete_all_budgets():
     if not budgets_by_month:
         print("No budgets to delete.")
