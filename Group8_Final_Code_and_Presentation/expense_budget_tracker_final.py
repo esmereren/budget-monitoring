@@ -465,10 +465,12 @@ def handle_expenses_menu():
         elif choice == "3":
             delete_all_expenses()
         elif choice == "4":
-            if selected_month is None:
-                print("No month selected. Please select a month first.")
+            month_input = input("Enter month (YYYY-MM): ").strip()
+            if extract_month(month_input) is None:
+                print("Invalid month format.")
             else:
-                list_expenses(get_expenses_for_selected_month())
+                records = [rec for rec in expenses if rec[IDX_MONTH] == month_input]
+                list_expenses(records)
         elif choice == "5":
             list_expenses(expenses)
         elif choice == "6":
