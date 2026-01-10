@@ -571,50 +571,53 @@ def plot_spending_by_category():
 
 
 def show_main_menu():
-    print("""
-===============================
-Expense & Budget Monitor (Menu)
-===============================
-1  - Expenses
-2  - Budgets
-3  - Categories
-4  - Select analysis month (YYYY-MM)
-5  - Show monthly summary
-6  - Plot spending by category (optional)
-0  - Exit
-""")
+    print(
+        "\n"
+        "===============================\n"
+        "Expense & Budget Monitor (Menu)\n"
+        "===============================\n"
+        "1  - Expenses\n"
+        "2  - Budgets\n"
+        "3  - Categories\n"
+        "4  - Select analysis month (YYYY-MM)\n"
+        "5  - Show monthly summary\n"
+        "6  - Plot spending by category (optional)\n"
+        "0  - Exit\n"
+    )
 
 
 def show_expenses_menu():
-    print("""
-=================
-Expenses (Menu)
-=================
-1  - Load expenses from CSV
-2  - Save expenses to CSV
-3  - Delete all expenses
-4  - List expenses (selected month)
-5  - List expenses (all)
-6  - Add expense (manual)
-7  - Edit expense (selected month)
-0  - Back
-""")
+    print(
+        "\n"
+        "=================\n"
+        "Expenses (Menu)\n"
+        "=================\n"
+        "1  - Load expenses from CSV\n"
+        "2  - Save expenses to CSV\n"
+        "3  - Delete all expenses\n"
+        "4  - List expenses (selected month)\n"
+        "5  - List expenses (all)\n"
+        "6  - Add expense (manual)\n"
+        "7  - Edit expense (selected month)\n"
+        "0  - Back\n"
+    )
 
 
 def show_budgets_menu():
-    print("""
-================
-Budgets (Menu)
-================
-1  - Load budgets from CSV
-2  - Save budgets to CSV
-3  - Delete all budgets
-4  - List budgets (selected month)
-5  - List budgets (all)
-6  - Add budget (manual)
-7  - Edit budget (selected month)
-0  - Back
-""")
+    print(
+        "\n"
+        "================\n"
+        "Budgets (Menu)\n"
+        "================\n"
+        "1  - Load budgets from CSV\n"
+        "2  - Save budgets to CSV\n"
+        "3  - Delete all budgets\n"
+        "4  - List budgets (selected month)\n"
+        "5  - List budgets (all)\n"
+        "6  - Add budget (manual)\n"
+        "7  - Edit budget (selected month)\n"
+        "0  - Back\n"
+    )
 
 
 def show_categories_menu():
