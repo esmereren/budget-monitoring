@@ -56,6 +56,59 @@ def categorize_expense(description: str):
     return DEFAULT_CATEGORY
 
 
+def list_categories():
+    if not CATEGORY_RULES:
+        print("No categories defined.")
+        return
+    print("-" * 60)
+    print(f"{'No.':>3s}  {'Category':20s}  Keywords")
+    print("-" * 60)
+    for i, (category, keywords) in enumerate(CATEGORY_RULES, start=1):
+        keywords_text = ", ".join(keywords)
+        print(f"{i:3d}  {category:20s}  {keywords_text}")
+    print("-" * 60)
+
+
+def add_category_interactive():
+    category = input("Category name: ").strip()
+    if not category:
+        print("Invalid category name.")
+        return
+    for existing, _ in CATEGORY_RULES:
+        if existing.lower() == category.lower():
+            print("Category already exists.")
+            return
+    keywords_input = input("Keywords (comma separated): ").strip()
+    keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
+    if not keywords:
+        print("At least one keyword is required.")
+        return
+    CATEGORY_RULES.append((category, keywords))
+    print(f"Category '{category}' added.")
+
+
+def delete_category_interactive():
+    if not CATEGORY_RULES:
+        print("No categories to delete.")
+        return
+    list_categories()
+    choice = input("Select category number to delete: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(CATEGORY_RULES):
+        print("Selection out of range.")
+        return
+    category, _ = CATEGORY_RULES[idx]
+    confirm = input(f"Delete category '{category}'? (y/N): ").strip().lower()
+    if confirm != "y":
+        print("Delete cancelled.")
+        return
+    CATEGORY_RULES.pop(idx)
+    print(f"Category '{category}' deleted.")
+
+
 def load_expenses_csv(filename: str):
     loaded = 0
     skipped = 0
@@ -120,6 +173,18 @@ def save_expenses_csv(filename: str):
         print(f"Error while saving expenses: {e}")
 
 
+def delete_all_expenses():
+    if not expenses:
+        print("No expenses to delete.")
+        return
+    confirm = input("Delete all expenses? (y/N): ").strip().lower()
+    if confirm != "y":
+        print("Delete cancelled.")
+        return
+    expenses.clear()
+    print("All expenses deleted.")
+
+
 def load_budgets_csv(filename: str):
     loaded = 0
     skipped = 0
@@ -178,6 +243,125 @@ def save_budgets_csv(filename: str):
         print(f"Saved budgets to '{filename}'.")
     except Exception as e:
         print(f"Error while saving budgets: {e}")
+
+
+def list_budgets_for_month(month_input: str):
+    items = get_budget_items_for_month(month_input)
+    if not items:
+        print(f"No budgets found for month '{month_input}'.")
+        return
+    print("-" * 50)
+    print(f"Budgets for {month_input}")
+    print("-" * 50)
+    print(f"{'Category':20s} {'Budget':>10s}")
+    print("-" * 50)
+    for cat, value in items:
+        print(f"{cat:20s} {value:10.2f}")
+    print("-" * 50)
+
+
+def get_budget_items_for_month(month_input: str):
+    month_budgets = budgets_by_month.get(month_input, {})
+    return sorted(month_budgets.items(), key=lambda item: item[0].lower())
+
+
+def list_budgets_for_month_with_numbers(month_input: str):
+    items = get_budget_items_for_month(month_input)
+    if not items:
+        print(f"No budgets found for month '{month_input}'.")
+        return []
+    print("-" * 60)
+    print(f"Budgets for {month_input}")
+    print("-" * 60)
+    print(f"{'No.':>3s}  {'Category':20s} {'Budget':>10s}")
+    print("-" * 60)
+    for i, (cat, value) in enumerate(items, start=1):
+        print(f"{i:3d}  {cat:20s} {value:10.2f}")
+    print("-" * 60)
+    return items
+
+
+def list_all_budgets():
+    if not budgets_by_month:
+        print("No budgets to display.")
+        return
+    for month in sorted(budgets_by_month.keys()):
+        list_budgets_for_month(month)
+
+
+def add_budget_interactive():
+    while True:
+        month_input = input("Month (YYYY-MM) (enter to stop): ").strip()
+        if not month_input:
+            return
+        if extract_month(month_input) is None:
+            print("Invalid month format.")
+            continue
+        break
+    while True:
+        cat = input("Category (enter to stop): ").strip()
+        if not cat:
+            return
+        amount_txt = input("Budget amount: ").strip()
+        amount_val = safe_float(amount_txt)
+        if amount_val is None:
+            print("Invalid amount.")
+            continue
+        if month_input not in budgets_by_month:
+            budgets_by_month[month_input] = {}
+        budgets_by_month[month_input][cat] = round(amount_val, 2)
+        print(f"Budget saved for {month_input} / {cat}.")
+
+
+def edit_budget_interactive():
+    month_input = input("Enter month (YYYY-MM): ").strip()
+    if extract_month(month_input) is None:
+        print("Invalid month format.")
+        return
+    items = list_budgets_for_month_with_numbers(month_input)
+    if not items:
+        return
+    choice = input("Select budget number to edit: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(items):
+        print("Selection out of range.")
+        return
+
+    old_cat, old_value = items[idx]
+
+    new_cat = input(f"New category (enter to keep '{old_cat}'): ").strip()
+    if not new_cat:
+        new_cat = old_cat
+
+    new_amount = input(f"New budget amount (enter to keep '{old_value:.2f}'): ").strip()
+    if new_amount:
+        amount_val = safe_float(new_amount)
+        if amount_val is None:
+            print("Invalid amount. Edit cancelled.")
+            return
+        new_value = round(amount_val, 2)
+    else:
+        new_value = old_value
+
+    if new_cat != old_cat:
+        del budgets_by_month[month_input][old_cat]
+    budgets_by_month[month_input][new_cat] = new_value
+    print("Budget updated.")
+
+
+def delete_all_budgets():
+    if not budgets_by_month:
+        print("No budgets to delete.")
+        return
+    confirm = input("Delete all budgets? (y/N): ").strip().lower()
+    if confirm != "y":
+        print("Delete cancelled.")
+        return
+    budgets_by_month.clear()
+    print("All budgets deleted.")
 
 
 def available_months():
@@ -246,12 +430,13 @@ def add_expense_interactive():
 
 
 def edit_expense_interactive():
-    if selected_month is None:
-        print("No month selected. Please select a month first.")
+    month_input = input("Enter month (YYYY-MM): ").strip()
+    if extract_month(month_input) is None:
+        print("Invalid month format.")
         return
-    records = get_expenses_for_selected_month()
+    records = [rec for rec in expenses if rec[IDX_MONTH] == month_input]
     if not records:
-        print(f"No expenses found for month '{selected_month}'.")
+        print(f"No expenses found for month '{month_input}'.")
         return
 
     list_expenses(records)
@@ -385,29 +570,72 @@ def plot_spending_by_category():
     plt.show()
 
 
-def show_menu():
-    print("""
-===============================
-Expense & Budget Monitor (Menu)
-===============================
-1  - Load expenses from CSV
-2  - Save expenses to CSV
-3  - Load budgets from CSV
-4  - Save budgets to CSV
-5  - Select analysis month (YYYY-MM)
-6  - List expenses (selected month)
-7  - List expenses (all)
-8  - Add expense (manual)
-9  - Edit expense (selected month)
-10 - Show monthly summary
-11 - Plot spending by category (optional)
-0  - Exit
-""")
+def show_main_menu():
+    print(
+        "\n"
+        "===============================\n"
+        "Expense & Budget Monitor (Menu)\n"
+        "===============================\n"
+        "1  - Expenses\n"
+        "2  - Budgets\n"
+        "3  - Categories\n"
+        "4  - Select analysis month (YYYY-MM)\n"
+        "5  - Show monthly summary\n"
+        "6  - Plot spending by category (optional)\n"
+        "0  - Exit\n"
+    )
 
 
-def main():
+def show_expenses_menu():
+    print(
+        "\n"
+        "=================\n"
+        "Expenses (Menu)\n"
+        "=================\n"
+        "1  - Load expenses from CSV\n"
+        "2  - Save expenses to CSV\n"
+        "3  - Delete all expenses\n"
+        "4  - List expenses (selected month)\n"
+        "5  - List expenses (all)\n"
+        "6  - Add expense (manual)\n"
+        "7  - Edit expense (selected month)\n"
+        "0  - Back\n"
+    )
+
+
+def show_budgets_menu():
+    print(
+        "\n"
+        "================\n"
+        "Budgets (Menu)\n"
+        "================\n"
+        "1  - Load budgets from CSV\n"
+        "2  - Save budgets to CSV\n"
+        "3  - Delete all budgets\n"
+        "4  - List budgets (selected month)\n"
+        "5  - List budgets (all)\n"
+        "6  - Add budget (manual)\n"
+        "7  - Edit budget (selected month)\n"
+        "0  - Back\n"
+    )
+
+
+def show_categories_menu():
+    print(
+        "\n"
+        "=================\n"
+        "Categories (Menu)\n"
+        "=================\n"
+        "1  - List categories\n"
+        "2  - Add category\n"
+        "3  - Delete category\n"
+        "0  - Back\n"
+    )
+
+
+def handle_expenses_menu():
     while True:
-        show_menu()
+        show_expenses_menu()
         choice = input("Enter your choice: ").strip()
 
         if choice == "1":
@@ -417,27 +645,96 @@ def main():
             fn = input("Save expenses to filename: ").strip()
             save_expenses_csv(fn)
         elif choice == "3":
+            delete_all_expenses()
+        elif choice == "4":
+            month_input = input("Enter month (YYYY-MM): ").strip()
+            if extract_month(month_input) is None:
+                print("Invalid month format.")
+            else:
+                records = [rec for rec in expenses if rec[IDX_MONTH] == month_input]
+                list_expenses(records)
+        elif choice == "5":
+            list_expenses(expenses)
+        elif choice == "6":
+            add_expense_interactive()
+        elif choice == "7":
+            edit_expense_interactive()
+        elif choice == "0":
+            break
+        else:
+            print("Invalid selection. Please choose a valid menu number.")
+
+        input("\nPress Enter to continue...")
+
+
+def handle_categories_menu():
+    while True:
+        show_categories_menu()
+        choice = input("Enter your choice: ").strip()
+
+        if choice == "1":
+            list_categories()
+        elif choice == "2":
+            add_category_interactive()
+        elif choice == "3":
+            delete_category_interactive()
+        elif choice == "0":
+            break
+        else:
+            print("Invalid selection. Please choose a valid menu number.")
+
+        input("\nPress Enter to continue...")
+
+
+def handle_budgets_menu():
+    while True:
+        show_budgets_menu()
+        choice = input("Enter your choice: ").strip()
+
+        if choice == "1":
             fn = input("Budget CSV filename: ").strip()
             load_budgets_csv(fn)
-        elif choice == "4":
+        elif choice == "2":
             fn = input("Save budgets to filename: ").strip()
             save_budgets_csv(fn)
-        elif choice == "5":
-            select_month_interactive()
-        elif choice == "6":
-            if selected_month is None:
-                print("No month selected. Please select a month first.")
+        elif choice == "3":
+            delete_all_budgets()
+        elif choice == "4":
+            month_input = input("Enter month (YYYY-MM): ").strip()
+            if extract_month(month_input) is None:
+                print("Invalid month format.")
             else:
-                list_expenses(get_expenses_for_selected_month())
+                list_budgets_for_month(month_input)
+        elif choice == "5":
+            list_all_budgets()
+        elif choice == "6":
+            add_budget_interactive()
         elif choice == "7":
-            list_expenses(expenses)
-        elif choice == "8":
-            add_expense_interactive()
-        elif choice == "9":
-            edit_expense_interactive()
-        elif choice == "10":
+            edit_budget_interactive()
+        elif choice == "0":
+            break
+        else:
+            print("Invalid selection. Please choose a valid menu number.")
+
+        input("\nPress Enter to continue...")
+
+
+def main():
+    while True:
+        show_main_menu()
+        choice = input("Enter your choice: ").strip()
+
+        if choice == "1":
+            handle_expenses_menu()
+        elif choice == "2":
+            handle_budgets_menu()
+        elif choice == "3":
+            handle_categories_menu()
+        elif choice == "4":
+            select_month_interactive()
+        elif choice == "5":
             show_monthly_summary()
-        elif choice == "11":
+        elif choice == "6":
             plot_spending_by_category()
         elif choice == "0":
             print("Good bye")
