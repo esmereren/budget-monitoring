@@ -270,12 +270,13 @@ def add_expense_interactive():
 
 
 def edit_expense_interactive():
-    if selected_month is None:
-        print("No month selected. Please select a month first.")
+    month_input = input("Enter month (YYYY-MM): ").strip()
+    if extract_month(month_input) is None:
+        print("Invalid month format.")
         return
-    records = get_expenses_for_selected_month()
+    records = [rec for rec in expenses if rec[IDX_MONTH] == month_input]
     if not records:
-        print(f"No expenses found for month '{selected_month}'.")
+        print(f"No expenses found for month '{month_input}'.")
         return
 
     list_expenses(records)
