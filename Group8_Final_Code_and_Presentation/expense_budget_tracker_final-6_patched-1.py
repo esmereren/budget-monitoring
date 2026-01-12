@@ -192,13 +192,41 @@ def edit_category_interactive():
                 print("Category already exists. Edit cancelled.")
                 return
 
-    keywords_input = input(
-        f"New keywords (comma separated, enter to keep '{', '.join(old_keywords)}'): "
-    ).strip()
-    if keywords_input:
+    while True:
+        print(
+            "\nKeyword options:\n"
+            "1  - Add keywords\n"
+            "2  - Delete keywords\n"
+            "0  - Keep keywords\n"
+        )
+        keyword_choice = input("Enter your choice: ").strip()
+        if keyword_choice in {"0", "1", "2"}:
+            break
+        print("Invalid selection. Please choose a valid menu number.")
+
+    if keyword_choice == "1":
+        keywords_input = input("Add keywords (comma separated): ").strip()
         new_keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
         if not new_keywords:
             print("At least one keyword is required. Edit cancelled.")
+            return
+        existing_set = {kw.lower() for kw in old_keywords}
+        combined = old_keywords[:]
+        for kw in new_keywords:
+            if kw not in existing_set:
+                combined.append(kw)
+                existing_set.add(kw)
+        new_keywords = combined
+    elif keyword_choice == "2":
+        keywords_input = input("Delete keywords (comma separated): ").strip()
+        remove_keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
+        if not remove_keywords:
+            print("At least one keyword is required. Edit cancelled.")
+            return
+        remove_set = {kw.lower() for kw in remove_keywords}
+        new_keywords = [kw for kw in old_keywords if kw.lower() not in remove_set]
+        if not new_keywords:
+            print("At least one keyword must remain. Edit cancelled.")
             return
     else:
         new_keywords = old_keywords
@@ -762,20 +790,34 @@ def all_categories_from_data_and_budgets(totals, month_budgets):
 
 
 def show_monthly_summary():
-    if selected_month is None:
-        print("No month selected. Please select a month first.")
+    year_input = input("Enter year (YYYY): ").strip()
+    month_input = input("Enter month (MM): ").strip()
+
+    if not (year_input.isdigit() and month_input.isdigit()):
+        print("Invalid year or month format.")
         return
-    records = get_expenses_for_selected_month()
+
+    month_number = int(month_input)
+    if month_number < 1 or month_number > 12:
+        print("Invalid month. Please enter a value between 01 and 12.")
+        return
+
+    month_str = extract_month(f"{year_input}-{month_number:02d}")
+    if month_str is None:
+        print("Invalid year or month format.")
+        return
+
+    records = [rec for rec in expenses if rec[IDX_MONTH] == month_str]
     if not records:
-        print(f"No expenses found for month '{selected_month}'.")
+        print(f"No expenses found for month '{month_str}'.")
         return
 
     totals = calculate_totals(records)
-    month_budgets = budgets_by_month.get(selected_month, {})
+    month_budgets = budgets_by_month.get(month_str, {})
     categories = all_categories_from_data_and_budgets(totals, month_budgets)
 
     print("\n=== Monthly Summary ===")
-    print(f"Month: {selected_month}")
+    print(f"Month: {month_str}")
     print("-" * 72)
     print(f"{'Category':18s} {'Budget':>10s} {'Spent':>10s} {'Remain':>10s}  Status")
     print("-" * 72)
@@ -819,23 +861,54 @@ def plot_spending_by_category():
     if not HAS_MPL:
         print("Matplotlib not available. Plotting is skipped.")
         return
-    if selected_month is None:
-        print("No month selected. Please select a month first.")
+    year_input = input("Enter year (YYYY): ").strip()
+    month_input = input("Enter month (MM): ").strip()
+
+    if not (year_input.isdigit() and month_input.isdigit()):
+        print("Invalid year or month format.")
         return
-    records = get_expenses_for_selected_month()
+
+    month_number = int(month_input)
+    if month_number < 1 or month_number > 12:
+        print("Invalid month. Please enter a value between 01 and 12.")
+        return
+
+    month_str = extract_month(f"{year_input}-{month_number:02d}")
+    if month_str is None:
+        print("Invalid year or month format.")
+        return
+
+    records = [rec for rec in expenses if rec[IDX_MONTH] == month_str]
     if not records:
-        print(f"No expenses found for month '{selected_month}'.")
+        print(f"No expenses found for month '{month_str}'.")
         return
 
     totals = calculate_totals(records)
     cats = sorted(totals.keys(), key=str.lower)
-    values = [totals[c] for c in cats]
+    if not cats:
+        print("No categories found for the selected month.")
+        return
+
+    print("\nSelect category to plot:")
+    for i, cat in enumerate(cats, start=1):
+        print(f"{i:3d}  {cat}")
+    choice = input("Enter category number: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(cats):
+        print("Selection out of range.")
+        return
+
+    selected_category = cats[idx]
+    values = [totals[selected_category]]
 
     plt.figure(figsize=(8, 4))
-    plt.bar(cats, values)
+    plt.bar([selected_category], values)
     plt.xlabel("Category")
     plt.ylabel("Total Spent")
-    plt.title(f"Spending by Category ({selected_month})")
+    plt.title(f"Spending by Category ({month_str})")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     plt.show()
