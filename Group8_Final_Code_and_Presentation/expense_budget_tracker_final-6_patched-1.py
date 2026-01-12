@@ -1,5 +1,6 @@
 try:
     import matplotlib.pyplot as plt
+
     HAS_MPL = True
 except ImportError:
     HAS_MPL = False
@@ -29,7 +30,7 @@ Index	Constant	Meaning
 4	IDX_MONTH	Month
 """
 
-DEFAULT_CATEGORY = "Other" # If no keyword matches an expense description, the category defaults to "Other".
+DEFAULT_CATEGORY = "Other"  # If no keyword matches an expense description, the category defaults to "Other".
 
 CATEGORY_RULES = [
     ("Housing", ["rent", "mortgage", "utility", "utilities"]),
@@ -38,9 +39,10 @@ CATEGORY_RULES = [
     ("Entertainment", ["cinema", "movie", "concert", "subscription", "netflix", "spotify", "game"]),
 ]
 
-expenses = [] # Stores all expense records.
+expenses = []  # Stores all expense records.
 budgets_by_month = {}
-selected_month = None # Keeps track of the currently selected month for analysis. None means no month selected yet.
+selected_month = None  # Keeps track of the currently selected month for analysis. None means no month selected yet.
+
 
 def safe_float(text: str):
     s = text.strip().replace(",", ".")
@@ -48,6 +50,8 @@ def safe_float(text: str):
         return float(s)
     except ValueError:
         return None
+
+
 """
 Converts user input safely into a float.
 Supports European number formats ("12,50" → 12.5).
@@ -59,18 +63,19 @@ Allows caller to validate input explicitly:
         print("Invalid amount")
 """
 
-def extract_month(date_str: str): # Extracts "YYYY-MM" from "YYYY-MM-DD". Used for monthly grouping and analysis.
-    s = date_str.strip() # remove whitespace
-    if len(s) < 7: # minimum length check
+
+def extract_month(date_str: str):  # Extracts "YYYY-MM" from "YYYY-MM-DD". Used for monthly grouping and analysis.
+    s = date_str.strip()  # remove whitespace
+    if len(s) < 7:  # minimum length check
         return None
-    if len(s) >= 5 and s[4] != "-": # format check
+    if len(s) >= 5 and s[4] != "-":  # format check
         return None
     year = s[0:4]
     month = s[5:7]
     # extract year and month
     if (not year.isdigit()) or (not month.isdigit()):
-        return None # validate digit
-    return s[0:7] # return "YYYY-MM"
+        return None  # validate digit
+    return s[0:7]  # return "YYYY-MM"
 
 
 def categorize_expense(description: str):
@@ -81,6 +86,7 @@ def categorize_expense(description: str):
                 return category
     return DEFAULT_CATEGORY
 
+
 """
 Takes an expense description (e.g., "Coffee at Cafe").
 Converts it to lowercase safely:
@@ -89,6 +95,7 @@ Loops through all (category, keywords) rules in CATEGORY_RULES.
 If any keyword is a substring of the description, returns that category.
 If no keyword matches, returns DEFAULT_CATEGORY (e.g., "Other").
 """
+
 
 def list_categories():
     if not CATEGORY_RULES:
@@ -102,6 +109,7 @@ def list_categories():
         print(f"{i:3d}  {category:20s}  {keywords_text}")
     print("-" * 60)
 
+
 """
 Prints a nicely formatted table of categories and their keywords.
 Uses:
@@ -109,6 +117,7 @@ Uses:
     - enumerate(..., start=1) to show human-friendly numbering
     - ", ".join(keywords) to print keywords on one line
 """
+
 
 def add_category_interactive():
     category = input("Category name: ").strip()
@@ -127,6 +136,7 @@ def add_category_interactive():
     CATEGORY_RULES.append((category, keywords))
     print(f"Category '{category}' added.")
 
+
 """
 Asks the user to type a category name.
 Rejects empty input.
@@ -135,6 +145,7 @@ Asks for comma-separated keywords.
 Splits keywords, trims spaces, converts to lowercase, removes empty pieces.
 Appends (category, keywords) to CATEGORY_RULES.
 """
+
 
 def delete_category_interactive():
     if not CATEGORY_RULES:
@@ -157,6 +168,7 @@ def delete_category_interactive():
     CATEGORY_RULES.pop(idx)
     print(f"Category '{category}' deleted.")
 
+
 """
 Shows categories with numbers.
 User chooses a number.
@@ -166,6 +178,7 @@ must be within range
 Confirms with "y".
 Deletes the rule from CATEGORY_RULES.
 """
+
 
 def edit_category_interactive():
     if not CATEGORY_RULES:
@@ -250,6 +263,7 @@ def edit_category_interactive():
 
     print("Category updated.")
 
+
 """
 -User selects a category rule.
 -They can rename the category and/or change its keyword list.
@@ -277,7 +291,7 @@ E) Update the rule
     CATEGORY_RULES[idx] = (new_category, new_keywords)
 
 F) If category name changed, update expenses + budgets
- 
+
     if new_category != old_category:
         for rec in expenses:
             if rec[IDX_CATEGORY] == old_category:
@@ -299,6 +313,7 @@ for month, budgets in budgets_by_month.items():
 -It moves the old budget value under the new category name (per month).
 -If the new category already had a budget, it keeps the existing budget and warns.
 """
+
 
 def load_expenses_csv(filename: str):
     loaded = 0
@@ -351,7 +366,7 @@ def load_expenses_csv(filename: str):
         -Strips whitespace.
         -Skips empty lines silently.
         """
-        
+
         parts = [p.strip() for p in raw.split(",")]
         if len(parts) < 3:
             skipped += 1
@@ -392,14 +407,15 @@ def load_expenses_csv(filename: str):
         -Appends it to the global expenses list.
         """
 
-    print(f"Loaded {loaded} expense(s). Skipped {skipped} invalid row(s).") # Prints summary counts so the user understands what happened.
+    print(
+        f"Loaded {loaded} expense(s). Skipped {skipped} invalid row(s).")  # Prints summary counts so the user understands what happened.
 
 
 def save_expenses_csv(filename: str):
     if not expenses:
         print("No expenses to save.")
         return
-# If there’s nothing in memory, it exits early.
+    # If there’s nothing in memory, it exits early.
     try:
         with open(filename, "w", encoding="utf-8") as f:
             f.write("date,description,amount,category\n")
@@ -413,6 +429,7 @@ def save_expenses_csv(filename: str):
     except Exception as e:
         print(f"Error while saving expenses: {e}")
 
+
 """
 -Opens a file in write mode "w" (overwrites if it exists).
 -Writes a header row.
@@ -423,12 +440,13 @@ Why it replaces \n and \r?
 -This sanitizes the text into a single line.
 """
 
+
 def delete_all_expenses():
     if not expenses:
         print("No expenses to delete.")
         return
-# If the list is already empty, it exists.
-    
+    # If the list is already empty, it exists.
+
     confirm = input("Delete all expenses? (y/N): ").strip().lower()
     if confirm != "y":
         print("Delete cancelled.")
@@ -446,6 +464,7 @@ def delete_all_expenses():
     -Clears the list in-place.
     -Keeps the list object but removes all elements.
     """
+
 
 def load_budgets_csv(filename: str):
     loaded = 0
@@ -468,7 +487,7 @@ def load_budgets_csv(filename: str):
     if not lines:
         print("File is empty.")
         return
-# Prevents accessing lines[0] (would crash).
+    # Prevents accessing lines[0] (would crash).
 
     start_idx = 0
     header = lines[0].strip().lower().replace(" ", "")
@@ -489,7 +508,7 @@ def load_budgets_csv(filename: str):
         if len(parts) < 3:
             skipped += 1
             continue
-# Splits by comma, expects at least 3 columns: month, category, budget.
+        # Splits by comma, expects at least 3 columns: month, category, budget.
 
         month_raw = parts[0]
         cat = parts[1]
@@ -518,8 +537,8 @@ def save_budgets_csv(filename: str):
     if not budgets_by_month:
         print("No budgets to save.")
         return
-# Avoid creting an empty file
-    
+    # Avoid creting an empty file
+
     try:
         with open(filename, "w", encoding="utf-8") as f:
             f.write("month,category,budget\n")
@@ -554,6 +573,8 @@ def list_budgets_for_month(month_input: str):
 def get_budget_items_for_month(month_input: str):
     month_budgets = budgets_by_month.get(month_input, {})
     return sorted(month_budgets.items(), key=lambda item: item[0].lower())
+
+
 # Retrieves budget for a month and returns a sorted list of (category, budget) pairs.
 
 def list_budgets_for_month_with_numbers(month_input: str):
@@ -578,6 +599,8 @@ def list_all_budgets():
         return
     for month in sorted(budgets_by_month.keys()):
         list_budgets_for_month(month)
+
+
 # Prints each month in sorted order.
 
 def add_budget_interactive():
@@ -589,9 +612,9 @@ def add_budget_interactive():
             print("Invalid month format.")
             continue
         break
-# Keeps asking until month format is valid.
-# Allows user to cancel by pressing Enter
-# Normalize month (also accepts YYYY-MM-DD input)
+    # Keeps asking until month format is valid.
+    # Allows user to cancel by pressing Enter
+    # Normalize month (also accepts YYYY-MM-DD input)
     month_input = extract_month(month_input)
 
     while True:
