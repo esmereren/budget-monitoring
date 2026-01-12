@@ -889,6 +889,7 @@ def plot_spending_by_category():
         print("No categories found for the selected month.")
         return
     values = [totals[c] for c in cats]
+    print(f"Plotting {len(cats)} category(ies) for {month_str}.")
 
     plt.figure(figsize=(8, 4))
     plt.bar([selected_category], values)
