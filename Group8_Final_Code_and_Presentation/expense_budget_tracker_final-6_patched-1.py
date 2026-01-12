@@ -192,13 +192,41 @@ def edit_category_interactive():
                 print("Category already exists. Edit cancelled.")
                 return
 
-    keywords_input = input(
-        f"New keywords (comma separated, enter to keep '{', '.join(old_keywords)}'): "
-    ).strip()
-    if keywords_input:
+    while True:
+        print(
+            "\nKeyword options:\n"
+            "1  - Add keywords\n"
+            "2  - Delete keywords\n"
+            "0  - Keep keywords\n"
+        )
+        keyword_choice = input("Enter your choice: ").strip()
+        if keyword_choice in {"0", "1", "2"}:
+            break
+        print("Invalid selection. Please choose a valid menu number.")
+
+    if keyword_choice == "1":
+        keywords_input = input("Add keywords (comma separated): ").strip()
         new_keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
         if not new_keywords:
             print("At least one keyword is required. Edit cancelled.")
+            return
+        existing_set = {kw.lower() for kw in old_keywords}
+        combined = old_keywords[:]
+        for kw in new_keywords:
+            if kw not in existing_set:
+                combined.append(kw)
+                existing_set.add(kw)
+        new_keywords = combined
+    elif keyword_choice == "2":
+        keywords_input = input("Delete keywords (comma separated): ").strip()
+        remove_keywords = [kw.strip().lower() for kw in keywords_input.split(",") if kw.strip()]
+        if not remove_keywords:
+            print("At least one keyword is required. Edit cancelled.")
+            return
+        remove_set = {kw.lower() for kw in remove_keywords}
+        new_keywords = [kw for kw in old_keywords if kw.lower() not in remove_set]
+        if not new_keywords:
+            print("At least one keyword must remain. Edit cancelled.")
             return
     else:
         new_keywords = old_keywords
