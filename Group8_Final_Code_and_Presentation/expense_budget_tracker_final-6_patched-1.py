@@ -861,23 +861,54 @@ def plot_spending_by_category():
     if not HAS_MPL:
         print("Matplotlib not available. Plotting is skipped.")
         return
-    if selected_month is None:
-        print("No month selected. Please select a month first.")
+    year_input = input("Enter year (YYYY): ").strip()
+    month_input = input("Enter month (MM): ").strip()
+
+    if not (year_input.isdigit() and month_input.isdigit()):
+        print("Invalid year or month format.")
         return
-    records = get_expenses_for_selected_month()
+
+    month_number = int(month_input)
+    if month_number < 1 or month_number > 12:
+        print("Invalid month. Please enter a value between 01 and 12.")
+        return
+
+    month_str = extract_month(f"{year_input}-{month_number:02d}")
+    if month_str is None:
+        print("Invalid year or month format.")
+        return
+
+    records = [rec for rec in expenses if rec[IDX_MONTH] == month_str]
     if not records:
-        print(f"No expenses found for month '{selected_month}'.")
+        print(f"No expenses found for month '{month_str}'.")
         return
 
     totals = calculate_totals(records)
     cats = sorted(totals.keys(), key=str.lower)
-    values = [totals[c] for c in cats]
+    if not cats:
+        print("No categories found for the selected month.")
+        return
+
+    print("\nSelect category to plot:")
+    for i, cat in enumerate(cats, start=1):
+        print(f"{i:3d}  {cat}")
+    choice = input("Enter category number: ").strip()
+    if not choice.isdigit():
+        print("Invalid selection.")
+        return
+    idx = int(choice) - 1
+    if idx < 0 or idx >= len(cats):
+        print("Selection out of range.")
+        return
+
+    selected_category = cats[idx]
+    values = [totals[selected_category]]
 
     plt.figure(figsize=(8, 4))
-    plt.bar(cats, values)
+    plt.bar([selected_category], values)
     plt.xlabel("Category")
     plt.ylabel("Total Spent")
-    plt.title(f"Spending by Category ({selected_month})")
+    plt.title(f"Spending by Category ({month_str})")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     plt.show()
