@@ -891,8 +891,20 @@ def plot_spending_by_category():
     values = [totals[c] for c in cats]
     print(f"Plotting {len(cats)} category(ies) for {month_str}.")
 
+    month_budgets = budgets_by_month.get(month_str, {})
+
     plt.figure(figsize=(8, 4))
-    plt.bar([selected_category], values)
+    bars = plt.bar(cats, values)
+    for i, cat in enumerate(cats):
+        budget = month_budgets.get(cat)
+        if budget is not None:
+            plt.hlines(
+                y=budget,
+                xmin=i - 0.4,
+                xmax=i + 0.4,
+                colors="red",
+                linewidth=2,
+            )
     plt.xlabel("Category")
     plt.ylabel("Total Spent")
     plt.title(f"Spending by Category ({month_str})")
