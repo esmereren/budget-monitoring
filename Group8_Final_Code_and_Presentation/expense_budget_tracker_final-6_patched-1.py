@@ -891,7 +891,7 @@ def plot_spending_by_category():
     values = [totals[c] for c in cats]
 
     plt.figure(figsize=(8, 4))
-    plt.bar(cats, values)
+    plt.bar([selected_category], values)
     plt.xlabel("Category")
     plt.ylabel("Total Spent")
     plt.title(f"Spending by Category ({month_str})")
