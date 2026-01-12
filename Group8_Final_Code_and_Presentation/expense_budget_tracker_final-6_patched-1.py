@@ -888,21 +888,7 @@ def plot_spending_by_category():
     if not cats:
         print("No categories found for the selected month.")
         return
-
-    print("\nSelect category to plot:")
-    for i, cat in enumerate(cats, start=1):
-        print(f"{i:3d}  {cat}")
-    choice = input("Enter category number: ").strip()
-    if not choice.isdigit():
-        print("Invalid selection.")
-        return
-    idx = int(choice) - 1
-    if idx < 0 or idx >= len(cats):
-        print("Selection out of range.")
-        return
-
-    selected_category = cats[idx]
-    values = [totals[selected_category]]
+    values = [totals[c] for c in cats]
 
     plt.figure(figsize=(8, 4))
     plt.bar([selected_category], values)
