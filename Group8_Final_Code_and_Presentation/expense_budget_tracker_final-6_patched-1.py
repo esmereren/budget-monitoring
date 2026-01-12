@@ -282,57 +282,57 @@ def load_expenses_csv(filename: str):
         print(f"File not found: {filename}")
         return
 
-"""
-Initializes counters:
-    -loaded: how many valid expense rows were imported
-    -skipped: how many rows were invalid and ignored
-Tries to open the file and read all lines into a list.
-If the file does not exist, catches FileNotFoundError and exits cleanly without crashing.
-"""
+    """
+    Initializes counters:
+        -loaded: how many valid expense rows were imported
+        -skipped: how many rows were invalid and ignored
+    Tries to open the file and read all lines into a list.
+    If the file does not exist, catches FileNotFoundError and exits cleanly without crashing.
+    """
 
     if not lines:
         print("File is empty.")
         return
 
-"""
-If the file contains zero lines, it prints a message and exits.
-Prevents later code from trying to read lines[0] (which would crash).
-"""
+    """
+    If the file contains zero lines, it prints a message and exits.
+    Prevents later code from trying to read lines[0] (which would crash).
+    """
 
     start_idx = 0
     header = lines[0].strip().lower().replace(" ", "")
     if header.startswith("date,") and "description" in header and "amount" in header:
         start_idx = 1
 
-"""
--Takes the first line, normalizes it:
-    -removes leading/trailing whitespace (strip())
-    -makes it case-insensitive (lower())
-    -removes spaces (replace(" ", ""))
--Checks if it looks like a header row (contains date/description/amount).
--If yes, sets start_idx = 1 so the loop skips the header.
-"""
+    """
+    -Takes the first line, normalizes it:
+        -removes leading/trailing whitespace (strip())
+        -makes it case-insensitive (lower())
+        -removes spaces (replace(" ", ""))
+    -Checks if it looks like a header row (contains date/description/amount).
+    -If yes, sets start_idx = 1 so the loop skips the header.
+    """
 
     for line in lines[start_idx:]:
         raw = line.strip()
         if not raw:
             continue
 
-"""
--Iterates over all rows after the header (if any).
--Strips whitespace.
--Skips empty lines silently.
-"""
+        """
+        -Iterates over all rows after the header (if any).
+        -Strips whitespace.
+        -Skips empty lines silently.
+        """
         
         parts = [p.strip() for p in raw.split(",")]
         if len(parts) < 3:
             skipped += 1
             continue
 
-"""
--Splits the row by commas into fields.
--If there aren’t at least 3 fields → invalid row → count as skipped.
-"""
+        """
+        -Splits the row by commas into fields.
+        -If there aren’t at least 3 fields → invalid row → count as skipped.
+        """
 
         date_str = parts[0]
         desc = parts[1]
@@ -343,26 +343,26 @@ Prevents later code from trying to read lines[0] (which would crash).
             skipped += 1
             continue
 
-"""
--Takes:
-    -date string
-    -description string
-    -amount string → converts safely using safe_float()
--Extracts month (YYYY-MM) from the date using extract_month().
--If either amount or month is invalid → skip the row.
-"""
+        """
+        -Takes:
+            -date string
+            -description string
+            -amount string → converts safely using safe_float()
+        -Extracts month (YYYY-MM) from the date using extract_month().
+        -If either amount or month is invalid → skip the row.
+        """
 
         category = categorize_expense(desc)
         record = [date_str, desc, amount_val, category, month_val]
         expenses.append(record)
         loaded += 1
 
-"""
--Assigns a category based on keywords in the description.
--Builds a record list in the program’s internal format:
-    -[date, desc, amount, category, month]
--Appends it to the global expenses list.
-"""
+        """
+        -Assigns a category based on keywords in the description.
+        -Builds a record list in the program’s internal format:
+            -[date, desc, amount, category, month]
+        -Appends it to the global expenses list.
+        """
 
     print(f"Loaded {loaded} expense(s). Skipped {skipped} invalid row(s).") # Prints summary counts so the user understands what happened.
 
@@ -406,18 +406,18 @@ def delete_all_expenses():
         print("Delete cancelled.")
         return
 
-"""
--Asks for confirmation.
--Only "y" proceeds.
--Anything else cancels safely.
-"""
+    """
+    -Asks for confirmation.
+    -Only "y" proceeds.
+    -Anything else cancels safely.
+    """
     expenses.clear()
     print("All expenses deleted.")
 
-"""
--Clears the list in-place.
--Keeps the list object but removes all elements.
-"""
+    """
+    -Clears the list in-place.
+    -Keeps the list object but removes all elements.
+    """
 
 def load_budgets_csv(filename: str):
     loaded = 0
@@ -429,13 +429,13 @@ def load_budgets_csv(filename: str):
         print(f"File not found: {filename}")
         return
 
-"""
--Uses try/except to avoid crashing if the file doesn’t exist.
--Reads all lines into memory.
--Tracks:
-    -loaded: valid rows inserted
-    -skipped: invalid rows ignored
-"""
+    """
+    -Uses try/except to avoid crashing if the file doesn’t exist.
+    -Reads all lines into memory.
+    -Tracks:
+        -loaded: valid rows inserted
+        -skipped: invalid rows ignored
+    """
 
     if not lines:
         print("File is empty.")
@@ -447,10 +447,10 @@ def load_budgets_csv(filename: str):
     if header.startswith("month,") and "category" in header and "budget" in header:
         start_idx = 1
 
-"""
-Detects a header line like month,category,budget.
-If header is present, skips it.
-"""
+    """
+    Detects a header line like month,category,budget.
+    If header is present, skips it.
+    """
 
     for line in lines[start_idx:]:
         raw = line.strip()
@@ -472,11 +472,11 @@ If header is present, skips it.
             skipped += 1
             continue
 
-"""
--Converts amount with safe_float() (handles comma decimals).
--Extracts YYYY-MM via extract_month().
--Rejects invalid month/category/value.
-"""
+        """
+        -Converts amount with safe_float() (handles comma decimals).
+        -Extracts YYYY-MM via extract_month().
+        -Rejects invalid month/category/value.
+        """
 
         if month_str not in budgets_by_month:
             budgets_by_month[month_str] = {}
@@ -498,11 +498,11 @@ def save_budgets_csv(filename: str):
             for month in sorted(budgets_by_month.keys()):
                 for cat, value in budgets_by_month[month].items():
                     f.write(f"{month},{cat},{value}\n")
-"""
--Writes a header.
--Sorts months to produce stable output order.
--Within each month, categories are written in dictionary iteration order (not explicitly sorted).
-"""
+        """
+        -Writes a header.
+        -Sorts months to produce stable output order.
+        -Within each month, categories are written in dictionary iteration order (not explicitly sorted).
+        """
         print(f"Saved budgets to '{filename}'.")
     except Exception as e:
         print(f"Error while saving budgets: {e}")
