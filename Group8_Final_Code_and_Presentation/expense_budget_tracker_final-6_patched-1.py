@@ -63,7 +63,6 @@ Allows caller to validate input explicitly:
         print("Invalid amount")
 """
 
-
 def extract_month(date_str: str):  # Extracts "YYYY-MM" from "YYYY-MM-DD". Used for monthly grouping and analysis.
     s = date_str.strip()  # remove whitespace
     if len(s) < 7:  # minimum length check
