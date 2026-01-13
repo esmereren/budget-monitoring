@@ -40,7 +40,6 @@ CATEGORY_RULES = [
 
 expenses = [] # Stores all expense records.
 budgets_by_month = {}
-selected_month = None # Keeps track of the currently selected month for analysis. None means no month selected yet.
 
 def safe_float(text: str):
     s = text.strip().replace(",", ".")
@@ -661,37 +660,6 @@ def delete_all_budgets():
     print("All budgets deleted.")
 
 
-def available_months():
-    months = set()
-    for rec in expenses:
-        months.add(rec[IDX_MONTH])
-    for m in budgets_by_month.keys():
-        months.add(m)
-    return sorted(months)
-
-
-def select_month_interactive():
-    global selected_month
-    months = available_months()
-    if not months:
-        print("No months available. Load expenses and/or budgets first.")
-        return
-    print("Available months:", ", ".join(months))
-    m_raw = input("Select month (YYYY-MM): ").strip()
-    m = extract_month(m_raw)
-    if m is None:
-        print("Invalid month format.")
-        return
-    selected_month = m
-    print(f"Selected month: {selected_month}")
-
-
-def get_expenses_for_selected_month():
-    if selected_month is None:
-        return []
-    return [rec for rec in expenses if rec[IDX_MONTH] == selected_month]
-
-
 def list_expenses(records):
     if not records:
         print("No expenses to display.")
@@ -922,9 +890,8 @@ def show_main_menu():
         "1  - Expenses\n"
         "2  - Budgets\n"
         "3  - Categories\n"
-        "4  - Select analysis month (YYYY-MM)\n"
-        "5  - Show monthly summary\n"
-        "6  - Plot spending by category (optional)\n"
+        "4  - Show monthly summary\n"
+        "5  - Plot spending by category (optional)\n"
         "0  - Exit\n"
     )
 
@@ -1079,10 +1046,8 @@ def main():
         elif choice == "3":
             handle_categories_menu()
         elif choice == "4":
-            select_month_interactive()
-        elif choice == "5":
             show_monthly_summary()
-        elif choice == "6":
+        elif choice == "5":
             plot_spending_by_category()
         elif choice == "0":
             print("Good bye")
